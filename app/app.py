@@ -3,85 +3,81 @@ import pandas as pd
 import numpy as np
 import joblib
 
-
+# ✅ Load Model and Scaler
 model = joblib.load("../models/placement_logistic_model.pkl")
 scaler = joblib.load("../models/scaler.pkl")
 
+# ✅ Load Dataset for Analysis
+df = pd.read_csv("../data/college_student_placement_dataset.csv")
 
-st.title("🎓 College Placement Predictor with Smart Suggestions")
+# ✅ Preprocessing
+df['Internship_Experience'] = df['Internship_Experience'].map({'Yes': 1, 'No': 0})
+df['Placement'] = df['Placement'].map({'Yes': 1, 'No': 0})
+df['Internship_Experience'] = df['Internship_Experience'] * 10  # Amplified in training
 
-st.markdown("""
-This tool predicts the placement chance of a student based on academic and personal data.
+# ✅ Feature Columns
+features = [
+    'IQ', 'Prev_Sem_Result', 'CGPA', 'Academic_Performance',
+    'Internship_Experience', 'Extra_Curricular_Score',
+    'Communication_Skills', 'Projects_Completed'
+]
 
-> ⚠️ **Note:** This prediction is a simulation using synthetic data. It is for learning purposes only and doesn't guarantee real-life results.
-""")
+# ✅ UI
+st.title("📊 College Placement Predictor")
+st.write("⚠️ Note: This is a prediction model for learning purposes. Actual placement depends on many factors.")
 
-st.sidebar.header("🔧 Enter Student Details")
-
-
-iq = st.sidebar.number_input("IQ Score (Typical: 80–130)", 50, 150, 110)
-prev_sem_result = st.sidebar.number_input("Previous Semester GPA (0 - 10)", 0.0, 10.0, 7.0)
-cgpa = st.sidebar.number_input("Cumulative GPA (CGPA) (0 - 10)", 0.0, 10.0, 7.0)
-academic_performance = st.sidebar.slider("Academic Performance (1-10)", 1, 10, 7)
-internship_experience = st.sidebar.slider("Number of Internships", 0, 5, 1)
-extra_curricular_score = st.sidebar.slider("Extra-Curricular Score (0-10)", 0, 10, 5)
-communication_skills = st.sidebar.slider("Communication Skills (1-10)", 1, 10, 7)
-projects_completed = st.sidebar.slider("Projects Completed", 0, 5, 2)
-
-
-if st.button("🔍 Predict Placement"):
-    input_data = pd.DataFrame([[
-        iq, prev_sem_result, cgpa, academic_performance,
-        internship_experience * 10,  
-        extra_curricular_score, communication_skills, projects_completed
-    ]], columns=[
-        'IQ', 'Prev_Sem_Result', 'CGPA', 'Academic_Performance',
-        'Internship_Experience', 'Extra_Curricular_Score',
-        'Communication_Skills', 'Projects_Completed'
-    ])
-
-    scaled_input = scaler.transform(input_data)
-    prediction = model.predict(scaled_input)
-    prediction_proba = model.predict_proba(scaled_input)[0][1]
+st.header("🎓 Enter Your Details")
 
 
-    if prediction[0] == 1:
-        st.success("✅ Prediction Result: Placed")
+user_data = {}
+for feature in features:
+    if feature == 'Internship_Experience':
+        user_data[feature] = st.number_input("Number of Internships Completed", min_value=0, step=1)
+    elif feature in ['Academic_Performance', 'Extra_Curricular_Score', 'Communication_Skills']:
+        user_data[feature] = st.slider(f"{feature.replace('_', ' ')} (0-10)", 0, 10)
     else:
-        st.error("❌ Prediction Result: Not Placed")
+        user_data[feature] = st.number_input(f"{feature.replace('_', ' ')}", step=0.1)
 
-    st.write(f"Prediction Confidence: {prediction_proba:.2f}")
+# ✅ Prediction
+if st.button("Predict Placement"):
+    input_df = pd.DataFrame([user_data])
+    input_df['Internship_Experience'] *= 10  
+    scaled_input = scaler.transform(input_df)
+    prediction = model.predict(scaled_input)[0]
 
-
-    st.subheader("📊 Personalized Suggestions Based on Placed Students")
-    dataset = pd.read_csv("../data/college_student_placement_dataset.csv")
-    dataset['Internship_Experience'] = dataset['Internship_Experience'].map({'Yes': 1, 'No': 0})
-    dataset['Placement'] = dataset['Placement'].map({'Yes': 1, 'No': 0})
-    dataset['Internship_Experience'] = dataset['Internship_Experience'] * 10  
-
-    placed_data = dataset[dataset['Placement'] == 1]
-    avg_scores = placed_data.mean()
-
-    suggestions = []
-    feature_inputs = {
-        'IQ': iq,
-        'Prev_Sem_Result': prev_sem_result,
-        'CGPA': cgpa,
-        'Academic_Performance': academic_performance,
-        'Internship_Experience': internship_experience * 10,
-        'Extra_Curricular_Score': extra_curricular_score,
-        'Communication_Skills': communication_skills,
-        'Projects_Completed': projects_completed
-    }
-
-    for feature, user_val in feature_inputs.items():
-        avg_val = avg_scores[feature]
-        if user_val < avg_val:
-            suggestions.append(f"📈 Improve **{feature.replace('_', ' ')}** (Average among placed students: {avg_val:.2f})")
-
-    if suggestions:
-        for s in suggestions:
-            st.markdown(s)
+    if prediction == 1:
+        st.success("🎉 Congratulations! The model predicts you are likely to be placed.")
     else:
-        st.info("✅ Your profile already matches typical placed student averages!")
+        st.error("❌ Unfortunately, the model predicts you may not get placed.")
+        st.info("🔍 Here’s what you can improve based on placed students' averages:")
+
+        # ✅ Suggest Improvements
+        placed_students = df[df['Placement'] == 1]
+        avg_scores = placed_students[features].mean()
+
+        suggestions = []
+    for col in features:
+        your_score = user_data[col]
+        avg_score = avg_scores[col] / (10 if col == 'Internship_Experience' else 1)  # Adjust internship scaling
+        
+        # Round appropriately
+        if col in ['Internship_Experience', 'Projects_Completed']:
+            your_score_display = int(your_score)
+            avg_score_display = int(round(avg_score))
+        else:
+            your_score_display = round(your_score, 2)
+            avg_score_display = round(avg_score, 2)
+        
+        if your_score < avg_score:
+            suggestion = (
+                f"- **{col.replace('_', ' ')}**: Your score ({your_score_display}) "
+                f"is below the average of placed students ({avg_score_display})."
+            )
+            suggestions.append(suggestion)
+
+        
+        if suggestions:
+            st.markdown("\n".join(suggestions))
+        else:
+            st.info("✅ You already match or exceed average scores of placed students! Focus on applying actively.")
 
