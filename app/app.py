@@ -2,10 +2,9 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-
-
-model = joblib.load("placement_logistic_model.pkl")
-scaler = joblib.load("scaler.pkl")
+import os
+model = joblib.load(os.path.join(os.path.dirname(__file__), "placement_logistic_model.pkl"))
+scaler = joblib.load(os.path.join(os.path.dirname(__file__), "scaler.pkl"))
 
 
 df = pd.read_csv("../data/college_student_placement_dataset.csv")
