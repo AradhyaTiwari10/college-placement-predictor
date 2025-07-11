@@ -4,8 +4,8 @@ import numpy as np
 import joblib
 
 
-model = joblib.load("../models/placement_logistic_model.pkl")
-scaler = joblib.load("../models/scaler.pkl")
+model = joblib.load("placement_logistic_model.pkl")
+scaler = joblib.load("scaler.pkl")
 
 
 df = pd.read_csv("../data/college_student_placement_dataset.csv")
