@@ -2,6 +2,8 @@
 
 A Streamlit web app that predicts the likelihood of a college student getting placed based on academic and extracurricular features. It uses a machine learning model trained on real placement data and provides actionable suggestions for improvement.
 
+__I Trained it on 10,000 students data, cleaned it, processed it, trained the ML model on it, Firstly i used linear Regression achieved 90% Accuracy, the used RFA (Random Forest Algorithm) and gained 99% Accuracy (Model is not Overfitting because of good database).__
+
 ## Features
 - Predicts placement chances based on:
   - IQ Score
@@ -14,8 +16,7 @@ A Streamlit web app that predicts the likelihood of a college student getting pl
   - Projects Completed (major projects)
 - Gives suggestions for improvement if the prediction is negative.
 
-## Demo
-![Demo Screenshot](#) <!-- Add a screenshot if available -->
+
 
 ## Setup & Installation
 1. **Clone the repository:**
@@ -44,5 +45,3 @@ A Streamlit web app that predicts the likelihood of a college student getting pl
 ## Disclaimer
 > ⚠️ This is a predictive tool for learning purposes. Actual placement depends on multiple real-life factors not captured by this model.
 
-## License
-[MIT](LICENSE) <!-- Update if you add a license file -->
