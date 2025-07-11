@@ -7,7 +7,8 @@ model = joblib.load(os.path.join(os.path.dirname(__file__), "placement_logistic_
 scaler = joblib.load(os.path.join(os.path.dirname(__file__), "scaler.pkl"))
 
 
-df = pd.read_csv("../data/college_student_placement_dataset.csv")
+data_path = os.path.join(os.path.dirname(__file__), "college_student_placement_dataset.csv")
+df = pd.read_csv(data_path)
 df['Internship_Experience'] = df['Internship_Experience'].map({'Yes': 1, 'No': 0})
 df['Placement'] = df['Placement'].map({'Yes': 1, 'No': 0})
 df['Internship_Experience'] *= 10  
